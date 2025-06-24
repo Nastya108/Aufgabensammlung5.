@@ -2,8 +2,9 @@
 #include <cmath>
 
 // Constructor: initialize min and max points
-Box::Box(const glm::vec3& min_, const glm::vec3& max_)
-    : min(min_), max(max_) {
+Box::Box(const std::string& name, const glm::vec3& color,
+    const glm::vec3& min_, const glm::vec3& max_)
+    : Shape(name, color), min(min_), max(max_) {
 }
 
 // Compute surface area of the box

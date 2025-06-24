@@ -9,7 +9,8 @@ private:
 
 public:
     // Constructor: two corners of the box
-    Box(const glm::vec3& min, const glm::vec3& max);
+    Box(const std::string& name, const glm::vec3& color,
+        const glm::vec3& min_, const glm::vec3& max_);
 
     // Override area and volume methods
     double area() const override;

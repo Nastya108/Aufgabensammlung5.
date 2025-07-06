@@ -5,7 +5,10 @@
 #include <cmath>
 #include <iostream>
 #include <glm/gtx/intersect.hpp>
+#include <glm/vec3.hpp>
 
+#include "Box.hpp"
+#include "Ray.hpp"
 #include "Sphere.hpp"
 #include "Box.hpp"
 
@@ -78,8 +81,61 @@ TEST_CASE("Box Volume", "[Box][Volume]") {
     SECTION("Zero volume (flat)") {
         Box b("FlatVol", glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 1, 1));
         REQUIRE(b.volume() == Approx(0.0).margin(1e-6));
+
+        std::cout << b;
     }
 }
+
+// ------------------ RAY HITS BOX TESTS ------------------
+
+void testRayHitsBox() {
+    Box box("UniqueBox", glm::vec3(0, 1, 0), glm::vec3(2, 2, 2), glm::vec3(4, 4, 4));
+
+    Ray ray;
+    ray.origin = glm::vec3(1, 3, 3);
+    ray.direction = glm::normalize(glm::vec3(1, 0, 0)); 
+    HitPoint hp = box.intersect(ray);
+    if (hp.hit) {
+        std::cout << "Hit detected at distance: " << hp.distance << "\n";
+        std::cout << "Hit position: (" << hp.position.x << ", " << hp.position.y << ", " << hp.position.z << ")\n";
+    }
+    else {
+        std::cout << "No hit detected (expected hit)\n";
+    }
+}
+
+void testRayMissesBox() {
+    Box box("UniqueBox", glm::vec3(0, 1, 0), glm::vec3(2, 2, 2), glm::vec3(4, 4, 4));
+
+    Ray ray;
+    ray.origin = glm::vec3(1, 5, 3);
+    ray.direction = glm::normalize(glm::vec3(1, 0, 0)); 
+
+    HitPoint hp = box.intersect(ray);
+    if (!hp.hit) {
+        std::cout << "Correctly detected no hit\n";
+    }
+    else {
+        std::cout << "Unexpected hit detected\n";
+    }
+}
+
+void testRayStartsInsideBox() {
+    Box box("UniqueBox", glm::vec3(0, 1, 0), glm::vec3(2, 2, 2), glm::vec3(4, 4, 4));
+
+    Ray ray;
+    ray.origin = glm::vec3(3, 3, 3);
+    ray.direction = glm::normalize(glm::vec3(0, 1, 0)); 
+
+    HitPoint hp = box.intersect(ray);
+    if (hp.hit && hp.distance >= 0) {
+        std::cout << "Hit from inside detected at distance: " << hp.distance << "\n";
+    }
+    else {
+        std::cout << "No hit detected (expected hit from inside)\n";
+    }
+}
+
 
 TEST_CASE("intersect_ray_sphere", "[intersect]")
 {

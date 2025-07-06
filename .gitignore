@@ -1,4 +1,4 @@
-# Compiled Object files
+﻿# Compiled Object files
 *.slo
 *.lo
 *.o
@@ -24,3 +24,6 @@ checkerboard.ppm
 
 build
 cmake_out
+
+# Visual Studio user‑ and workspace files
+.vs/

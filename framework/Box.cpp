@@ -1,4 +1,4 @@
-#include "Box.hpp"
+﻿#include "Box.hpp"
 #include <cmath>
 
 // Constructor

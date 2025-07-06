@@ -1,41 +1,61 @@
-#ifndef SHAPE_HPP
+﻿#ifndef SHAPE_HPP
 #define SHAPE_HPP
 
 #include <ostream>
 #include <string>
-#include <glm/vec3.hpp>
-#include "Ray.hpp"       
+#include <memory>
+
+#include <glm/vec3.hpp>    // for glm::vec3
+#include "Ray.hpp"
 #include "HitPoint.hpp"
+#include "Material.hpp"    // your Material DTO
 
-// Abstract base class for all 3D shapes
+/**
+ * @brief Abstract base class for all 3D shapes.
+ *
+ * Supports either a raw color (legacy) or a shared_ptr<Material>.
+ */
 class Shape {
-
 protected:
-    std::string name_;  // Name of the shape
-    glm::vec3 color_;   // Color represented as a 3D vector
+    std::string               name_;       ///< name of this shape
+    glm::vec3                 color_;      ///< legacy color; used by Box, Sphere, etc.
+    std::shared_ptr<Material> material_;   ///< new Material pointer (may be null)
 
 public:
-    // Constructor to initialize name and color
+    // Legacy constructor—called by Box, etc., without touching Material.
     Shape(const std::string& name, const glm::vec3& color)
-        : name_(name), color_(color) {
+        : name_(name), color_(color), material_(nullptr)
+    {
     }
 
-    // Prints shape info to the given output stream
+    // New constructor for Material‐based shapes.
+    Shape(const std::string& name, std::shared_ptr<Material> mat)
+        : name_(name)
+        , color_(mat ? mat->kd : glm::vec3{ 1.0f,1.0f,1.0f })  // diffuse as fallback
+        , material_(std::move(mat))
+    {
+    }
+
+    virtual ~Shape() = default;
+
+    /**
+     * @brief Print shape name and either color or material.
+     */
     virtual std::ostream& print(std::ostream& os) const;
 
-    // Virtual destructor 
-    virtual ~Shape() {} 
-
-    // // Pure virtual methods to compute area and volume
-    virtual double area() const = 0;
-    virtual double volume() const = 0;
-
-    // Ray/object intersection (pure virtual)
+    /// Compute surface area
+    virtual double   area()    const = 0;
+    /// Compute volume
+    virtual double   volume()  const = 0;
+    /// Ray–object intersection
     virtual HitPoint intersect(Ray const& ray) const = 0;
-
 };
 
-// Overload operator<< to print shape using print() method
-std::ostream& operator<<(std::ostream& os, Shape const& s);
+/**
+ * @brief Global stream‐insertion for any Shape.
+ */
+inline std::ostream& operator<<(std::ostream& os, Shape const& s) {
+    return s.print(os);
+}
 
-#endif
+#endif // SHAPE_HPP

@@ -1,20 +1,20 @@
 #include "Shape.hpp"
-#include <iostream>   // std::cout, std::ostream
-#include "Ray.hpp"
 
-// Base print: name + RGB color
+/**
+ * @brief Default print: shows name + either raw color or full material.
+ */
 std::ostream& Shape::print(std::ostream& os) const
 {
-    // Output the shape's name
-    os << "Shape(name: " << name_
-        // Output the color in (R, G, B) format
-        << ", color: (" << color_.r << ", "
-        << color_.g << ", "
-        << color_.b << "))";
+    os << "Shape(name: " << name_;
+    if (material_) {
+        os << ", material: " << *material_;
+    }
+    else {
+        os << ", color: ("
+            << color_.r << ", "
+            << color_.g << ", "
+            << color_.b << ")";
+    }
+    os << ")";
     return os;
-}
-
-std::ostream& operator<<(std::ostream& os, Shape const& s) {
-    s.print(os);
-    return os; 
 }

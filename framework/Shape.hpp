@@ -4,6 +4,8 @@
 #include <ostream>
 #include <string>
 #include <glm/vec3.hpp>
+#include "Ray.hpp"       
+#include "HitPoint.hpp"
 
 // Abstract base class for all 3D shapes
 class Shape {
@@ -27,6 +29,9 @@ public:
     // // Pure virtual methods to compute area and volume
     virtual double area() const = 0;
     virtual double volume() const = 0;
+
+    // Ray/object intersection (pure virtual)
+    virtual HitPoint intersect(Ray const& ray) const = 0;
 
 };
 

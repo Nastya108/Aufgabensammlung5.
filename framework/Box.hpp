@@ -1,5 +1,10 @@
-#include "Shape.hpp"
+﻿#include "Shape.hpp"
 #include <glm/vec3.hpp>
+#include "Ray.hpp"
+#include "HitPoint.hpp"
+
+#ifndef BOX_HPP
+#define BOX_HPP
 
 // Box class inherits from Shape
 class Box : public Shape {
@@ -17,5 +22,10 @@ public:
     // Override area and volume methods
     double area() const override;
     double volume() const override;
+
+    //ray‑box intersection
+    HitPoint intersect(Ray const& ray) const override;
 };
+
+#endif // BOX_HPP
 

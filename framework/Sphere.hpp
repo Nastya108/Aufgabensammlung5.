@@ -1,7 +1,5 @@
 #include "Shape.hpp"
 #include <glm/vec3.hpp>
-#include "Ray.hpp"       
-#include "HitPoint.hpp"
 
 class Sphere : public Shape {
 private:
@@ -23,6 +21,6 @@ public:
 
 
     // Checks if the given ray intersects with the sphere and returns hit information
-    HitPoint intersect(Ray const& ray) const;
+    HitPoint intersect(Ray const& ray) const override;
 
 };

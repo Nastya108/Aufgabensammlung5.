@@ -1,59 +1,25 @@
-// -----------------------------------------------------------------------------
-// Copyright  : (C) 2014-2017 Andreas-C. Bernstein
-// License    : MIT (see the file LICENSE)
-// Maintainer : Andreas-C. Bernstein <andreas.bernstein@uni-weimar.de>
-// Stability  : experimental
-//
-// Color
-// -----------------------------------------------------------------------------
+#pragma once
+#include <algorithm>
+#include <glm/vec3.hpp>
 
-#ifndef BUW_COLOR_HPP
-#define BUW_COLOR_HPP
+// Базовый цвет (linear RGB)
+using Color3 = glm::vec3;
+// Алиас для совместимости с вашим window.hpp, который ждёт Color
+using Color = Color3;
 
-#include <iostream>
+inline Color3 clamp01(const Color3& c) {
+    return Color3(
+        std::max(0.0f, std::min(1.0f, c.r)),
+        std::max(0.0f, std::min(1.0f, c.g)),
+        std::max(0.0f, std::min(1.0f, c.b))
+    );
+}
 
-struct Color
-{
-
-  friend std::ostream& operator<<(std::ostream& os, Color const& c)
-  {
-    os << "(" << c.r << "," << c.g << "," << c.b << ")\n";
-    return os;
-  }
-
-  Color& operator+=(Color const& other)
-  {
-    r += other.r;
-    g += other.g;
-    b += other.b;
-    return *this;
-  }
-
-  Color& operator-=(Color const& other)
-  {
-    r -= other.r;
-    g -= other.g;
-    b -= other.b;
-    return *this;
-  }
-
-  friend Color operator+(Color const& a, Color const& b)
-  {
-    auto tmp(a);
-    tmp += b;
-    return tmp;
-  }
-
-  friend Color operator-(Color const& a, Color const& b)
-  {
-    auto tmp(a);
-    tmp -= b;
-    return tmp;
-  }
-
-  float r;
-  float g;
-  float b;
-};
-
-#endif //#define BUW_COLOR_HPP
+// Тонмаппинг: cldr = chdr / (chdr + 1)
+inline Color3 tonemap(const Color3& hdr) {
+    return Color3(
+        hdr.r / (hdr.r + 1.0f),
+        hdr.g / (hdr.g + 1.0f),
+        hdr.b / (hdr.b + 1.0f)
+    );
+}

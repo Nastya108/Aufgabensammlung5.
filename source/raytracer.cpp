@@ -1,51 +1,38 @@
-﻿#include <renderer.hpp>
-#include <window.hpp>
+﻿#include <iostream>
+#include <string>
+#include "scene_loader.hpp"
+#include "renderer.hpp"
+#include "ppmwriter.hpp"
 
-#include "scene_loader.hpp"   // your SDF loader
-#include "Scene.hpp"          // Scene definition
-
-#include <GLFW/glfw3.h>
-#include <iostream>
-#include <thread>
-#include <utility>
-#include <cmath>
-
-int main(int argc, char* argv[])
-{
-    // 0) load materials from SDF
-    Scene scene;
-    try {
-        loadSceneFromSDF("scene.sdf", scene);
+int main(int argc, char** argv) {
+    if (argc < 3) {
+        std::cout << "Usage: " << argv[0] << " <scene.sdf> <output.ppm> [width height]\n";
+        return 0;
     }
-    catch (std::exception const& e) {
-        std::cerr << "Error loading scene: " << e.what() << "\n";
+
+    const std::string scene_file = argv[1];
+    const std::string out_file = argv[2];
+    const int W = (argc > 3) ? std::stoi(argv[3]) : 800;
+    const int H = (argc > 4) ? std::stoi(argv[4]) : 600;
+
+    Scene scene;
+    // Совместимость: у нас есть и load_scene_from_sdf, и обёртка loadSceneFromSDF(...)
+    if (!loadSceneFromSDF(scene_file, scene)) {
+        std::cerr << "Failed to load scene from: " << scene_file << "\n";
         return 1;
     }
 
-    // just to verify, print how many materials we loaded
-    std::cout << "Loaded " << scene.materials.size()
-        << " materials from scene.sdf\n";
+    // ВАЖНО: используем круглые скобки, а не brace-init
+    Renderer renderer(W, H, scene);
 
-    // 1) create the checkerboard renderer (three‐arg ctor)
-    unsigned const image_width = 800;
-    unsigned const image_height = 600;
-    std::string const filename = "./checkerboard.ppm";
+    // Запускаем рендер и получаем пиксели (а также renderer.color_buffer заполнится)
+    auto pixels = renderer.render();
 
-    Renderer renderer{ image_width,
-                       image_height,
-                       filename };    // <-- no 'scene' here!
-
-    // 2) render into the PPM
-    renderer.render();
-
-    // 3) display in a window
-    Window window{ {image_width, image_height} };
-    while (!window.should_close()) {
-        if (window.get_key(GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-            window.close();
-        }
-        window.show(renderer.color_buffer());
+    if (!ppm::writeP6(out_file, W, H, pixels)) {
+        std::cerr << "Failed to write " << out_file << "\n";
+        return 1;
     }
 
+    std::cout << "Rendered " << out_file << " (" << W << "x" << H << ")\n";
     return 0;
 }

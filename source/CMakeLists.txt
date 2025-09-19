@@ -1,25 +1,20 @@
-add_executable(example example.cpp)
+cmake_minimum_required(VERSION 3.15)
+project(raytracer_app)
 
-target_link_libraries(example ${FRAMEWORK_NAME} ${LIBRARIES})
-add_dependencies(example glfw ${FRAMEWORK_NAME} ${COPY_BINARY})
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-install(TARGETS example DESTINATION .)
+# Здесь лежит main()
+set(APP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_executable(raytracer raytracer.cpp)
+add_executable(raytracer
+    ${APP_DIR}/raytracer.cpp
+    # Если захотите собрать пример отдельно — раскомментируйте:
+    # ${APP_DIR}/example.cpp
+)
 
-target_link_libraries(raytracer ${FRAMEWORK_NAME} ${LIBRARIES}
-  glfw
-  ${GLFW_LIBRARIES}
-  )
-add_dependencies(raytracer glfw ${FRAMEWORK_NAME} ${COPY_BINARY})
+target_include_directories(raytracer PRIVATE ${APP_DIR})
 
-install(TARGETS raytracer DESTINATION .)
-
-# Build tests
-add_executable(tests
-  tests.cpp)
-target_link_libraries(tests
-  ${GLFW_LIBRARIES}
-  ${FRAMEWORK_NAME}
-  )
-
+# Линкуем с библиотекой из framework
+target_link_libraries(raytracer PRIVATE framework_src)
+# или: target_link_libraries(raytracer PRIVATE framework)  # если используете ALIAS

@@ -1,16 +1,33 @@
-file(GLOB FRAMEWORK_SOURCE *.cpp)
-file(GLOB FRAMEWORK_INLINE *.inl)
-file(GLOB FRAMEWORK_HEADER *.hpp)
+cmake_minimum_required(VERSION 3.15)
+project(framework_lib)
 
-source_group("Inline Files" FILES ${FRAMEWORK_INLINE})
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
+# GLM — заголовочная (header-only) библиотека
+find_package(glm QUIET)
 
-add_library(${FRAMEWORK_NAME} STATIC glew.c
-  ${FRAMEWORK_SOURCE}
-  ${FRAMEWORK_INLINE}
-  ${FRAMEWORK_HEADER}  "Ray.hpp" "HitPoint.hpp"  "Shape.cpp" "Material.cpp" "scene_loader.cpp")
-target_link_libraries(${FRAMEWORK_NAME}
-  ${OPENGL_LIBRARIES}
-  ${GLFW_LIBRARIES}
-  )
+# Все исходники фреймворка лежат прямо в этом каталоге (НЕ в src/)
+set(FW_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_library(framework_src STATIC
+    ${FW_DIR}/renderer.cpp
+    ${FW_DIR}/scene_loader.cpp
+    ${FW_DIR}/Shape.cpp
+    ${FW_DIR}/Sphere.cpp
+    ${FW_DIR}/Box.cpp
+    ${FW_DIR}/Material.cpp
+    ${FW_DIR}/pixel.cpp
+    ${FW_DIR}/ppmwriter.cpp
+)
+
+# Заголовки доступны потребителям библиотеки
+target_include_directories(framework_src PUBLIC ${FW_DIR})
+
+# Если find_package(glm) сработал — линкуемся с импортированной целью
+if (glm_FOUND)
+  target_link_libraries(framework_src PUBLIC glm::glm)
+endif()
+
+# (опционально) красивый алиас
+add_library(framework ALIAS framework_src)

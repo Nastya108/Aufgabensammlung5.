@@ -1,13 +1,11 @@
 #pragma once
 #include <glm/vec3.hpp>
-#include <string>
+struct Material;
 
-// Represents the result of a ray-shape intersection
 struct HitPoint {
-    bool        hit{ false };        // True if the ray hit something
-    float       distance{ 0.0f };    // Distance from ray origin to intersection (t)
-    std::string name{};              // Name of the intersected shape
-    glm::vec3   color{ 0.0f };       // Color of the intersected shape
-    glm::vec3   position{ 0.0f };    // Position of the intersection point
-    glm::vec3   direction{ 0.0f };   // Normalized direction at the hit point
+    float t = 1e30f;
+    glm::vec3 position{0.0f};
+    glm::vec3 normal{0.0f, 0.0f, 1.0f};
+    const Material* material = nullptr;
+    bool hit = false;
 };

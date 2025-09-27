@@ -9,12 +9,23 @@ Renderer::Renderer(const Scene& scene, const RenderSettings& settings)
 }
 
 static Ray make_primary_ray(const Camera& cam, int x, int y, int W, int H) {
+    // --- 1. Базис камери ---
+    glm::vec3 n = glm::normalize(-cam.dir);       // напрямок "назад"
+    glm::vec3 u = glm::normalize(glm::cross(cam.up, n)); // вправо
+    glm::vec3 v = glm::cross(n, u);              // уточнений вектор вгору
+
+    // --- 2. Горизонтальний FOV і аспект ---
     float aspect = float(W) / float(H);
-    float fov = cam.fov_deg * 3.14159265358979323846f / 180.0f;
-    float px = ((x + 0.5f) / float(W) * 2.0f - 1.0f) * std::tan(fov * 0.5f) * aspect;
-    float py = (1.0f - (y + 0.5f) / float(H) * 2.0f) * std::tan(fov * 0.5f);
-    glm::vec3 dir = glm::normalize(glm::vec3(px, py, -1.0f)); // camera looks along -Z
-    return Ray{ cam.eye, dir };
+    float fov_rad = cam.fov_deg * 3.14159265358979323846f / 180.0f;
+
+    // --- 3. Нормалізовані координати пікселя ---
+    float px = ((x + 0.5f) / float(W) * 2.0f - 1.0f) * std::tan(fov_rad * 0.5f) * aspect;
+    float py = (1.0f - (y + 0.5f) / float(H) * 2.0f) * std::tan(fov_rad * 0.5f);
+
+    // --- 4. Напрямок променя у системі світу ---
+    glm::vec3 dir_world = glm::normalize(u * px + v * py - n);
+
+    return Ray{ cam.eye, dir_world };
 }
 
 bool Renderer::occluded(const glm::vec3& p, const glm::vec3& toLight, float dist) const {
@@ -66,11 +77,11 @@ Color3 Renderer::trace(const Ray& ray, int depth) const {
             glm::normalize(R)
         };
 
-        // Recursively trace the reflection ray
+        // recursively trace the reflection ray
         reflectedColor = trace(reflectedRay, depth + 1);
     }
 
-    // Blend local color and reflected color based on reflectivity coefficient
+    // blend local color and reflected color based on reflectivity coefficient
     // reflectivity = 0.0 -> full local color, reflectivity = 
     float refl = best.material->reflectivity;
     return localColor * (1.0f - refl) + reflectedColor * refl;
@@ -80,29 +91,29 @@ Color3 Renderer::shade(const HitPoint& hp, const glm::vec3& wo) const {
     const Material* m = hp.material;
     Color3 color(0.0f);
 
-    // Ambient
+    // ambient
     color += m->ka * m->kd;
 
-    // For each point light
+    // for each point light
     for (const auto& L : scene_.lights) {
         glm::vec3 wi = L.position - hp.position;
         float dist = glm::length(wi);
         if (dist <= 0.0f) continue;
         wi /= dist;
 
-        // Shadow
+        // shadow
         if (occluded(hp.position, wi, dist)) continue;
 
         float ndotl = std::max(0.0f, glm::dot(hp.normal, wi));
-        // Diffuse
+        // diffuse
         Color3 diff = m->kd * ndotl;
 
-        // Specular (Blinn-Phong)
+        // specular (Blinn-Phong)
         glm::vec3 h = glm::normalize(wi + wo);
         float ndoth = std::max(0.0f, glm::dot(hp.normal, h));
         Color3 spec = m->ks * std::pow(ndoth, m->shininess);
 
-        // Light intensity falloff 1/r^2
+        // light intensity falloff 1/r^2
         float falloff = 1.0f / (dist * dist);
         color += (diff + spec) * L.intensity * falloff;
     }
@@ -117,13 +128,13 @@ std::vector<Pixel> Renderer::render() const {
 
     for (int y = 0; y < H; ++y) {
         for (int x = 0; x < W; ++x) {
-            // Create primary ray for current pixel
+            // create primary ray for current pixel
             Ray ray = make_primary_ray(scene_.camera, x, y, W, H);
 
-            // Trace ray through scene with reflection support
+            // trace ray through scene with reflection support
             Color3 hdr = trace(ray, 0);
 
-            // Apply tone mapping to convert HDR to LDR
+            // apply tone mapping to convert HDR to LDR
             Color3 ldr = tonemap(hdr);
             color_buffer[y * W + x] = Pixel::fromColorLDR(ldr);
         }

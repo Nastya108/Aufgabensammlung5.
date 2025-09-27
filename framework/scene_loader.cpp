@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
 
 bool load_scene_from_sdf(const std::string& filename, Scene& scene) {
     std::ifstream ifs(filename);
@@ -108,6 +109,19 @@ bool load_scene_from_sdf(const std::string& filename, Scene& scene) {
         else if (token == "fov") {
             float deg; if (!(iss >> deg)) { std::cerr << "fov: expected degrees at line " << lineno << "\n"; continue; }
             scene.camera.fov_deg = deg;
+        }
+
+        else if (token == "camera") {
+            std::string name;
+            float fov_x, ex, ey, ez, dx, dy, dz, ux, uy, uz;
+            if (!(iss >> name >> fov_x >> ex >> ey >> ez >> dx >> dy >> dz >> ux >> uy >> uz)) {
+                std::cerr << "camera: expected: camera <name> <fov-x> <eye_x eye_y eye_z> <dir_x dir_y dir_z> <up_x up_y up_z> at line " << lineno << "\n";
+                continue;
+            }
+            scene.camera.eye = glm::vec3(ex, ey, ez);
+            scene.camera.dir = glm::normalize(glm::vec3(dx, dy, dz));
+            scene.camera.up = glm::normalize(glm::vec3(ux, uy, uz));
+            scene.camera.fov_deg = fov_x;
         }
         else {
             std::cerr << "Unknown token '" << token << "' at line " << lineno << "\n";

@@ -33,7 +33,7 @@ private:
     Color3 shade(const HitPoint& hp, const glm::vec3& wo) const;
     bool occluded(const glm::vec3& p, const glm::vec3& toLight, float dist) const;
 
-    Color3 trace(const Ray& ray, int depth) const; //декларація trace()
+    Color3 trace(const Ray& ray, int depth) const; //trace() function declaration
 
 };
 

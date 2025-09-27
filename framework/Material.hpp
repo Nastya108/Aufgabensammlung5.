@@ -8,4 +8,5 @@ struct Material {
     Color3 ks{0.0f}; // specular color
     float ka = 0.0f; // ambient factor
     float shininess = 32.0f; // specular power
+    float reflectivity = 0.0f; // mirror reflectivity factor
 };

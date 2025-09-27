@@ -1,4 +1,4 @@
-#include "scene_loader.hpp"
+п»ї#include "scene_loader.hpp"
 #include "Sphere.hpp"
 #include "Box.hpp"
 #include <fstream>
@@ -14,7 +14,7 @@ bool load_scene_from_sdf(const std::string& filename, Scene& scene) {
     std::string line;
     int lineno = 0;
 
-    // Гарантируем дефолтный материал
+    // ГѓГ Г°Г Г­ГІГЁГ°ГіГҐГ¬ Г¤ГҐГґГ®Г«ГІГ­Г»Г© Г¬Г ГІГҐГ°ГЁГ Г«
     if (!scene.findMaterial("default")) {
         auto m = std::make_unique<Material>();
         m->name = "default";
@@ -56,6 +56,12 @@ bool load_scene_from_sdf(const std::string& filename, Scene& scene) {
                     float s; if (!(iss >> s)) break;
                     m->shininess = s;
                 }
+
+                else if (key == "reflectivity") {
+                    float refl; if (!(iss >> refl)) break;
+                    m->reflectivity = refl; // Material parsing for reflectivity
+                }
+
                 else {
                     break;
                 }

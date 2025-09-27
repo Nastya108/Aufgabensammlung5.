@@ -10,6 +10,7 @@ material mirror  kd 0 0 0 ks 1 1 1 ka 0 shininess 128 reflectivity 1
 # Об’єкти
 sphere s1 -1 0.5 -5 1 red
 sphere s2  1 0.5 -5 1 green
+camera main_camera 60 2 3 1 0 0 -1 0 1 0
 
 # Дзеркальна «підлога» (велика плита)
 box floor -5 -1 -10 5 -0.5 5 mirror

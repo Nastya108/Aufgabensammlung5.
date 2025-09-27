@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 #include <vector>
 #include <memory>
 #include <unordered_map>
@@ -14,17 +14,19 @@ struct PointLight {
 };
 
 struct Camera {
-    glm::vec3 eye{ 0.0f, 0.0f, 0.0f }; // at origin
-    float fov_deg = 60.0f;           // looking along -Z
+    glm::vec3 eye{ 0.0f, 0.0f, 0.0f };    // РџРѕР·РёС†С–СЏ РєР°РјРµСЂРё
+    glm::vec3 dir{ 0.0f, 0.0f, -1.0f };   // РќР°РїСЂСЏРјРѕРє РїРѕРіР»СЏРґСѓ (РЅРѕСЂРјР°Р»С–Р·РѕРІР°РЅРёР№)
+    glm::vec3 up{ 0.0f, 1.0f, 0.0f };     // Р’РµРєС‚РѕСЂ "РІРіРѕСЂСѓ"
+    float fov_deg = 60.0f;                // Р“РѕСЂРёР·РѕРЅС‚Р°Р»СЊРЅРёР№ РєСѓС‚ РѕРіР»СЏРґСѓ
 };
 
 struct Scene {
     std::vector<std::unique_ptr<Shape>> objects;
 
-    // Владение материалами
+    // Г‚Г«Г Г¤ГҐГ­ГЁГҐ Г¬Г ГІГҐГ°ГЁГ Г«Г Г¬ГЁ
     std::vector<std::unique_ptr<Material>> materials_owned;
 
-    // Плоские указатели на материалы — ДЛЯ СОВМЕСТИМОСТИ с вашим raytracer.cpp (scene.materials)
+    // ГЏГ«Г®Г±ГЄГЁГҐ ГіГЄГ Г§Г ГІГҐГ«ГЁ Г­Г  Г¬Г ГІГҐГ°ГЁГ Г«Г» вЂ” Г„Г‹Гџ Г‘ГЋГ‚ГЊГ…Г‘Г’Г€ГЊГЋГ‘Г’Г€ Г± ГўГ ГёГЁГ¬ raytracer.cpp (scene.materials)
     std::vector<Material*> materials;
 
     std::unordered_map<std::string, const Material*> material_by_name;
@@ -38,7 +40,7 @@ struct Scene {
         return (it == material_by_name.end()) ? nullptr : it->second;
     }
 
-    // Добавление и одновременная синхронизация в scene.materials
+    // Г„Г®ГЎГ ГўГ«ГҐГ­ГЁГҐ ГЁ Г®Г¤Г­Г®ГўГ°ГҐГ¬ГҐГ­Г­Г Гї Г±ГЁГ­ГµГ°Г®Г­ГЁГ§Г Г¶ГЁГї Гў scene.materials
     Material* addMaterial(std::unique_ptr<Material> m) {
         auto ptr = m.get();
         material_by_name[m->name] = ptr;

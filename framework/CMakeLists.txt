@@ -11,6 +11,8 @@ find_package(glm QUIET)
 set(FW_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(framework_src STATIC
+    ${FW_DIR}/Composite.cpp
+    ${FW_DIR}/Composite.hpp
     ${FW_DIR}/renderer.cpp
     ${FW_DIR}/scene_loader.cpp
     ${FW_DIR}/Shape.cpp

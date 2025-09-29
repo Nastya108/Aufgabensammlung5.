@@ -1,25 +1,22 @@
-п»ї#include "Box.hpp"
+#include "Box.hpp"
 #include <algorithm>
 #include <limits>
+#include <glm/glm.hpp>
+#include <glm/geometric.hpp>
 #include <cmath>
-#include <glm/glm.hpp>        // Basic types
-#include <glm/geometric.hpp>  // normalize
 
 Box::Box(const std::string& name, const Material* mat, const glm::vec3& bmin, const glm::vec3& bmax)
     : Shape(name, mat), bmin_(bmin), bmax_(bmax) {
 }
 
-bool Box::intersect(const Ray& ray, HitPoint& hp) const {
+bool Box::intersect(const Ray& ray, HitPoint& hp, const glm::mat4& parentWorldToLocal, const glm::mat3& parentNormalMat) const {
+    glm::mat4 W2L = this->invTransform() * parentWorldToLocal;
+    Ray r = transformRay(ray, W2L);
 
-    // Transform ray to local coordinate system
-        Ray localRay = transformRay(ray, inv_transform_);
+    glm::vec3 invD(1.0f / r.dir.x, 1.0f / r.dir.y, 1.0f / r.dir.z);
+    glm::vec3 t0 = (bmin_ - r.origin) * invD;
+    glm::vec3 t1 = (bmax_ - r.origin) * invD;
 
-    // Slab method for axis-aligned box intersection
-        glm::vec3 invD(1.0f / localRay.dir.x, 1.0f / localRay.dir.y, 1.0f / localRay.dir.z);
-        glm::vec3 t0 = (bmin_ - localRay.origin) * invD;
-        glm::vec3 t1 = (bmax_ - localRay.origin) * invD;
-
-        // Find min and max t values for each axis
     glm::vec3 tminv(
         std::min(t0.x, t1.x),
         std::min(t0.y, t1.y),
@@ -31,40 +28,38 @@ bool Box::intersect(const Ray& ray, HitPoint& hp) const {
         std::max(t0.z, t1.z)
     );
 
-    // Find intersection range
     float tmin = std::max(std::max(std::max(tminv.x, tminv.y), tminv.z), 1e-4f);
     float tmax = std::min(std::min(tmaxv.x, tmaxv.y), tmaxv.z);
+    if (tmax < tmin) return false;
 
-    // Check for valid intersection
-    if (tmax < tmin || tmin >= hp.t) return false;
+    float t = tmin;
+    if (t >= hp.t) return false;
 
-    // Calculate local hit point and normal
-    glm::vec3 localHit = localRay.origin + tmin * localRay.dir;
+    glm::vec3 p_local = r.origin + t * r.dir;
 
-    // Determine face normal based on hit position
-    glm::vec3 localNormal(0.0f);
+    glm::vec3 n_local(0.0f);
     const float eps = 1e-3f;
-    if (std::abs(localHit.x - bmin_.x) < eps) localNormal = glm::vec3(-1, 0, 0);
-    else if (std::abs(localHit.x - bmax_.x) < eps) localNormal = glm::vec3(1, 0, 0);
-    else if (std::abs(localHit.y - bmin_.y) < eps) localNormal = glm::vec3(0, -1, 0);
-    else if (std::abs(localHit.y - bmax_.y) < eps) localNormal = glm::vec3(0, 1, 0);
-    else if (std::abs(localHit.z - bmin_.z) < eps) localNormal = glm::vec3(0, 0, -1);
-    else localNormal = glm::vec3(0, 0, 1);
+    if (std::abs(p_local.x - bmin_.x) < eps) n_local = glm::vec3(-1, 0, 0);
+    else if (std::abs(p_local.x - bmax_.x) < eps) n_local = glm::vec3(1, 0, 0);
+    else if (std::abs(p_local.y - bmin_.y) < eps) n_local = glm::vec3(0, -1, 0);
+    else if (std::abs(p_local.y - bmax_.y) < eps) n_local = glm::vec3(0, 1, 0);
+    else if (std::abs(p_local.z - bmin_.z) < eps) n_local = glm::vec3(0, 0, -1);
+    else n_local = glm::vec3(0, 0, 1);
 
-    // Transform hit point and normal back to world space
-    glm::vec4 worldHit4 = world_transform_ * glm::vec4(localHit, 1.0f);
-    glm::vec4 worldNormal4 = glm::transpose(glm::inverse(world_transform_))
-        * glm::vec4(localNormal, 0.0f);
+    glm::vec4 p_world4 = glm::inverse(W2L) * glm::vec4(p_local, 1.0f);
+    glm::vec3 p_world = glm::vec3(p_world4);
 
-    glm::vec3 worldHit = glm::vec3(worldHit4);
-    glm::vec3 worldNormal = glm::normalize(glm::vec3(worldNormal4));
+    // Точное t вдоль исходного луча
+    float t_world = glm::dot(p_world - ray.origin, ray.dir);
+    if (t_world <= 1e-5f || t_world >= hp.t) return false;
 
-    // Store hit point data
-    hp.t = glm::length(worldHit - ray.origin);
-    hp.position = worldHit;
-    hp.normal = worldNormal;
+    glm::mat3 Nmat = glm::mat3(glm::transpose(W2L));
+    glm::vec3 n_world = glm::normalize(Nmat * n_local);
+
+    hp.t = t_world;
+    hp.position = p_world;
+    hp.normal = n_world;
     hp.material = material_;
     hp.hit = true;
-
     return true;
 }

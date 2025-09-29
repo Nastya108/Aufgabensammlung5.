@@ -1,19 +1,23 @@
-﻿# Фон і поле зору
-background 0.7 0.7 0.8
+﻿# Background and field of view
+background 0.2 0.2 0.3   # темніший фон для кращого контрасту
 fov 60
 
-# Матеріали
+# Materials
 material red     kd 0.9 0.1 0.1 ks 0.3 0.3 0.3 ka 0.05 shininess 32 reflectivity 0.3
 material green   kd 0.1 0.9 0.1 ks 0.3 0.3 0.3 ka 0.05 shininess 32 reflectivity 0.3
 material mirror  kd 0 0 0 ks 1 1 1 ka 0 shininess 128 reflectivity 1
 
-# Об’єкти
+# Objects
 sphere s1 -1 0.5 -5 1 red
-sphere s2  1 0.5 -5 1 green
-camera main_camera 60 2 3 1 0 0 -1 0 1 0
-
-# Дзеркальна «підлога» (велика плита)
+sphere s2 1 0.5 -5 1 green
 box floor -5 -1 -10 5 -0.5 5 mirror
 
-# Джерело світла (яскраве біле світло)
-light 0 5 -5 200 200 200
+# Object transformations
+transform s1 translate 0.5 0 0          # Move sphere s1 to the right
+transform s2 scale 1.2                   # Scale sphere s2 by 20%
+transform floor rotate 0 1 0 45          # Rotate floor by 45 degrees around Y
+# Camera
+camera top_view 60 0 10 0 0 -1 0 0 -1
+
+# Light source
+light 0 5 -5 200 200 200   # яскраве світло для чітких відображень

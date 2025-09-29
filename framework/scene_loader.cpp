@@ -15,7 +15,7 @@ bool load_scene_from_sdf(const std::string& filename, Scene& scene) {
     std::string line;
     int lineno = 0;
 
-    // Ãàðàíòèðóåì äåôîëòíûé ìàòåðèàë
+    // Ensure default material exists
     if (!scene.findMaterial("default")) {
         auto m = std::make_unique<Material>();
         m->name = "default";
@@ -114,14 +114,57 @@ bool load_scene_from_sdf(const std::string& filename, Scene& scene) {
         else if (token == "camera") {
             std::string name;
             float fov_x, ex, ey, ez, dx, dy, dz, ux, uy, uz;
+
             if (!(iss >> name >> fov_x >> ex >> ey >> ez >> dx >> dy >> dz >> ux >> uy >> uz)) {
                 std::cerr << "camera: expected: camera <name> <fov-x> <eye_x eye_y eye_z> <dir_x dir_y dir_z> <up_x up_y up_z> at line " << lineno << "\n";
                 continue;
             }
+
             scene.camera.eye = glm::vec3(ex, ey, ez);
             scene.camera.dir = glm::normalize(glm::vec3(dx, dy, dz));
             scene.camera.up = glm::normalize(glm::vec3(ux, uy, uz));
             scene.camera.fov_deg = fov_x;
+        }
+        else if (token == "transform") {
+            std::string objName, type;
+            if (!(iss >> objName >> type)) {
+                std::cerr << "transform: missing object name or type at line " << lineno << "\n";
+                continue;
+            }
+
+
+            // Find object by name
+            auto it = std::find_if(scene.objects.begin(), scene.objects.end(),
+                [&](const std::unique_ptr<Shape>& o) { return o->name() == objName; });
+            if (it == scene.objects.end()) {
+                std::cerr << "transform: object '" << objName << "' not found at line " << lineno << "\n";
+                continue;
+            }
+
+            glm::mat4 t = (*it)->transform();
+
+            // Apply transformation based on type
+            if (type == "translate") {
+                float x, y, z;
+                if (!(iss >> x >> y >> z)) { std::cerr << "translate: missing parameters at line " << lineno << "\n"; continue; }
+                t = glm::translate(t, glm::vec3(x, y, z));
+            }
+            else if (type == "scale") {
+                float s;
+                if (!(iss >> s)) { std::cerr << "scale: missing parameter at line " << lineno << "\n"; continue; }
+                t = glm::scale(t, glm::vec3(s));
+            }
+            else if (type == "rotate") {
+                float angle, x, y, z;
+                if (!(iss >> angle >> x >> y >> z)) { std::cerr << "rotate: missing parameters at line " << lineno << "\n"; continue; }
+                t = glm::rotate(t, glm::radians(angle), glm::vec3(x, y, z));
+            }
+            else {
+                std::cerr << "transform: unknown type '" << type << "' at line " << lineno << "\n";
+                continue;
+            }
+
+            (*it)->setTransform(t);
         }
         else {
             std::cerr << "Unknown token '" << token << "' at line " << lineno << "\n";
